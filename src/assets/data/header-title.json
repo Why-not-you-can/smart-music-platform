@@ -1,0 +1,22 @@
+[
+  {
+    "title": "发现音乐",
+    "type": "path",
+    "link": "/discover"
+  },
+  {
+    "title": "我的音乐",
+    "type": "path",
+    "link": "/mine"
+  },
+  {
+    "title": "关注",
+    "type": "path",
+    "link": "/focus"
+  },
+  {
+    "title": "音乐人",
+    "type": "link",
+    "link": "http://music.163.com/st/musician"
+  }
+]
