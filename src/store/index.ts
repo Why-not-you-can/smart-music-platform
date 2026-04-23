@@ -7,6 +7,7 @@ import songReducer from '../views/discover/c-views/songs/store/song'
 import djradioReducer from '../views/discover/c-views/djradio/store/djradio'
 import singerReducer from '../views/discover/c-views/singger/store/singer'
 import albumReducer from '../views/discover/c-views/album/store/album'
+import songslistReducer from '../views/songslist/store/songslist'
 const store = configureStore({
   reducer: {
     recommend: recommendReducer,
@@ -15,7 +16,8 @@ const store = configureStore({
     song: songReducer,
     djradio: djradioReducer,
     singer: singerReducer,
-    album: albumReducer
+    album: albumReducer,
+    songslist: songslistReducer
   }
 })
 

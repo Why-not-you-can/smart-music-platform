@@ -53,8 +53,7 @@ export const playLocalDBSongAction = createAsyncThunk<void, any, IThunkState>(
       ar: [{ name: song.artist }], // 将 artist 字符串转换为 ar 数组
       dt: convertDurationToMs(song.duration), // 转换时长格式
       al: { picUrl: song.cover }, // 专辑封面
-      url: song.url, // 保留音频URL
-      // 保留其他可能需要的字段
+      url: song.url,
       ...song
     }
 
@@ -75,7 +74,7 @@ export const playLocalDBSongAction = createAsyncThunk<void, any, IThunkState>(
 )
 
 // 辅助函数：将 "03:45" 格式转换为毫秒
-function convertDurationToMs(duration: string): number {
+export function convertDurationToMs(duration: string): number {
   if (!duration) return 0
   const parts = duration.split(':')
   if (parts.length === 2) {

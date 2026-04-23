@@ -10,9 +10,9 @@
     "link": "/mine"
   },
   {
-    "title": "关注",
+    "title": "创作音乐列表",
     "type": "path",
-    "link": "/focus"
+    "link": "/songslist"
   },
   {
     "title": "音乐人",

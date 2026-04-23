@@ -3,7 +3,7 @@ import styled from 'styled-components'
 export const HeaderWrapper = styled.div`
   height: 75px;
   background-color: black;
-  font-size: 18px;
+  font-size: 15px;
   font-color: #87c4ed;
 
   .content {

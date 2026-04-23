@@ -7,7 +7,7 @@ if (process.env.NODE_ENV === 'development') {
   // BASE_URL = 'https://163api.qijieya.cn'
 } else {
   // 生产环境
-  BASE_URL = '生产环境接口地址'
+  BASE_URL = 'https://apis.netstart.cn/music'
 }
 export const TIME_OUT = 10000
 export { BASE_URL }

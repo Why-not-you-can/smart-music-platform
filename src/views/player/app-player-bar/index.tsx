@@ -93,7 +93,7 @@ const AppPlayerBar: FC<IProps> = () => {
   useEffect(() => {
     if (currentSong && audioRef.current) {
       if (currentSong.url) {
-        audioRef.current.src = `http://localhost:3001${currentSong.url}`
+        audioRef.current.src = currentSong.url
       } else {
         audioRef.current.src = getSongPlayUrl(currentSong.id)
       }

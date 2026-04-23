@@ -14,11 +14,10 @@ const Djradio = lazy(() => import('@/views/discover/c-views/djradio'))
 const Singger = lazy(() => import('@/views/discover/c-views/singger'))
 const Album = lazy(() => import('@/views/discover/c-views/album'))
 const Mine = lazy(() => import('@/views/mine'))
-const Focus = lazy(() => import('@/views/focus'))
 const Player = lazy(() => import('@/views/player'))
 const Playlist = lazy(() => import('@/views/playlist'))
 const Personal = lazy(() => import('@/views/personal'))
-
+const SongsList = lazy(() => import('@/views/songslist'))
 const routes: RouteObject[] = [
   {
     path: '/',
@@ -71,12 +70,12 @@ const routes: RouteObject[] = [
     element: <Mine />
   },
   {
-    path: '/focus',
-    element: <Focus />
-  },
-  {
     path: '/personal',
     element: <Personal />
+  },
+  {
+    path: '/songslist',
+    element: <SongsList />
   }
 ]
 
