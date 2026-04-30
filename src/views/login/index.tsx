@@ -115,7 +115,6 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
         message.error(result.message)
       }
     } catch (error) {
-      console.error('注册错误:', error)
       message.error('注册失败，请检查网络连接')
     } finally {
       setLoading(false)
@@ -155,7 +154,6 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
         message.error(result.message)
       }
     } catch (error) {
-      console.error('登录错误:', error)
       message.error('登录失败，请检查网络连接')
     } finally {
       setLoading(false)

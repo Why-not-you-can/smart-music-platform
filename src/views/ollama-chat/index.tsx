@@ -131,7 +131,6 @@ const chatWithAI = async (
 
       return content
     } else {
-      console.warn('Unexpected Ollama response format:', data)
       throw new Error('Invalid response format from Ollama')
     }
   } catch (error) {
@@ -139,9 +138,6 @@ const chatWithAI = async (
     if (error instanceof Error && error.name === 'AbortError') {
       throw error
     }
-
-    console.warn('Ollama聊天API失败，使用模拟回复:', error)
-
     // 模拟智能回复
     return getMockAIResponse(message)
   }
@@ -909,7 +905,6 @@ const OllamaChat: React.FC = () => {
 
       return finalSongs
     } catch (error) {
-      console.error('获取歌曲推荐失败:', error)
       return [
         {
           id: 2054517809,
@@ -1026,7 +1021,6 @@ const OllamaChat: React.FC = () => {
 
       return selectedPlaylists
     } catch (error) {
-      console.error('获取歌单推荐失败:', error)
       return [
         {
           id: 7010846972,
@@ -1056,7 +1050,6 @@ const OllamaChat: React.FC = () => {
 
         return filteredSongs.length >= 2 ? filteredSongs.slice(0, 4) : allSongs
       } catch (error) {
-        console.error('按关键词获取歌曲失败:', error)
         return getSongsByContext()
       }
     },
@@ -1271,7 +1264,6 @@ const OllamaChat: React.FC = () => {
       } catch (error: any) {
         // 修复：添加类型检查
         if (error instanceof Error && error.name !== 'AbortError') {
-          console.error('处理请求错误:', error)
           const errorMsg: MessageItem = {
             id: generateId(),
             role: 'assistant',
@@ -1434,7 +1426,6 @@ const OllamaChat: React.FC = () => {
           alt={alt}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onError={(e) => {
-            console.error('图片加载失败，使用默认封面:', secureUrl)
             ;(e.target as HTMLImageElement).src = default_album
           }}
         />

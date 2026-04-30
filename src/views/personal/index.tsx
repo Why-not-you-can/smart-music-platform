@@ -75,7 +75,6 @@ const Personal: FC<IProps> = () => {
         message.error(result.message || '头像上传失败')
       }
     } catch (error) {
-      console.error('上传头像错误:', error)
       message.error('头像上传失败，请检查网络连接')
     }
   }
@@ -113,8 +112,6 @@ const Personal: FC<IProps> = () => {
   }
 
   const handleEditSubmit = async (values: EditFormData) => {
-    console.log('编辑表单数据:', values)
-
     try {
       if (user) {
         const updatedUser = {
@@ -150,7 +147,6 @@ const Personal: FC<IProps> = () => {
 
       setEditModalVisible(false)
     } catch (error) {
-      console.error('更新用户信息错误:', error)
       message.error('更新失败，请检查网络连接')
       setEditModalVisible(false)
     }

@@ -28,4 +28,38 @@ export const LoginWrapper = styled.div`
       background-position: -110px -195px;
     }
   }
+
+  &.logged-in {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    padding: 2px;
+    background: #fff;
+    border: 1px solid #dadada;
+  }
+
+  .info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .username {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  .stats {
+    font-size: 12px;
+    color: #666;
+    display: flex;
+    gap: 12px;
+  }
 `

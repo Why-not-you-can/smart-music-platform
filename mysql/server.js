@@ -36,7 +36,6 @@ async function getAudioDuration(filePath) {
     const metadata = await mm.parseFile(filePath)
     return metadata.format.duration || 0
   } catch (error) {
-    console.error('解析音频时长失败:', error)
     return 0
   }
 }
@@ -125,7 +124,6 @@ app.post(
         }
       }
     } catch (error) {
-      console.error('💥 头像上传错误:', error)
       res.json({
         success: false,
         message: '头像上传失败: ' + error.message
@@ -232,7 +230,6 @@ app.post('/api/register', async (req, res) => {
       userId: result.insertId
     })
   } catch (error) {
-    console.error('注册错误:', error)
     res.status(500).json({
       success: false,
       message: '服务器错误，请稍后重试'
@@ -247,9 +244,6 @@ app.post('/api/register', async (req, res) => {
 // 登录接口
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body
-
-  console.log('🔐 登录请求:', { username, password })
-
   if (!username || !password) {
     return res
       .status(400)
@@ -260,7 +254,7 @@ app.post('/api/login', async (req, res) => {
   try {
     connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(
-      'SELECT id, username, email, avatar, password FROM users WHERE username = ? OR email = ?', // 添加 password 字段
+      'SELECT id, username, email, avatar, password FROM users WHERE username = ? OR email = ?',
       [username, username]
     )
 
@@ -293,7 +287,6 @@ app.post('/api/login', async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('💥 登录错误:', error)
     res.status(500).json({
       success: false,
       message: '服务器错误，请稍后重试'
@@ -431,7 +424,6 @@ app.post('/api/upload', upload.single('music'), async (req, res) => {
       }
     }
   } catch (error) {
-    console.error('💥 上传错误:', error)
     res.json({
       success: false,
       message: '上传失败: ' + error.message
@@ -489,7 +481,6 @@ app.get('/api/songs/user/:userId', async (req, res) => {
       }
     }
   } catch (error) {
-    console.error('💥 获取歌曲列表错误:', error)
     res.json({
       success: false,
       message: '获取歌曲列表失败: ' + error.message
@@ -530,7 +521,6 @@ app.delete('/api/songs/:songId', async (req, res) => {
       }
     }
   } catch (error) {
-    console.error('💥 删除歌曲错误:', error)
     res.json({
       success: false,
       message: '删除失败'
@@ -575,7 +565,6 @@ app.get('/api/songs', async (req, res) => {
       }
     }
   } catch (error) {
-    console.error('💥 获取所有歌曲错误:', error)
     res.json({
       success: false,
       message: '获取歌曲失败'

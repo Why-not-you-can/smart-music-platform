@@ -71,6 +71,7 @@ export const PlayListWrapper = styled.div`
         width: 14px;
         height: 16px;
         background-position: -100px 0;
+        cursor: pointer;
       }
     }
   }

@@ -148,17 +148,29 @@ const AppPlayerBar: FC<IProps> = () => {
   }
 
   function handleTimeEnded() {
+    setProgress(0)
+    setCurrentTime(0)
     if (playMode === 2) {
       if (audioRef.current) {
         audioRef.current.currentTime = 0
       }
       audioRef.current?.play()
     } else {
-      handleChangeMusic(true)
+      if (playSongList.length > 1) {
+        handleChangeMusic(true)
+      } else {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0
+          audioRef.current.pause()
+        }
+        dispatch(changePlayStatusAction(false))
+      }
     }
   }
 
   function handleChangeMusic(isNext = true) {
+    setProgress(0)
+    setCurrentTime(0)
     dispatch(changeMusicAction(isNext))
   }
 

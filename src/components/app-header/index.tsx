@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import type { FC, ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { SearchOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons'
 import { HeaderLeft, HeaderRight, HeaderWrapper, UserMenu } from './style'
 import headerTitle from '@/assets/data/header-title.json'
@@ -85,7 +85,9 @@ const AppHeader: FC<IProps> = () => {
               placeholder="音乐/视频/电台/用户"
               prefix={<SearchOutlined />}
             />
-            <span className="center">创作者中心</span>
+            <Link to="/mine" className="center">
+              创作者中心
+            </Link>
             {user ? (
               // 已登录状态：显示用户头像和用户名
               <Dropdown

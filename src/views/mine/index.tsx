@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useRef } from 'react'
+import React, { memo, useState, useEffect, useRef, useCallback } from 'react'
 import type { FC, ReactNode } from 'react'
 import { MineWrapper } from './style'
 import { useUser } from '@/context/user-context'
@@ -35,6 +35,8 @@ import {
 import { playLocalDBSongAction } from '../player/store/player'
 import { useAppDispatch } from '@/store'
 import Login from '../login'
+import { getImageSize } from '@/utlis/format'
+import { useNavigate } from 'react-router-dom'
 
 interface IProps {
   children?: ReactNode
@@ -216,11 +218,13 @@ const ShareModal: React.FC<{
 const Mine: FC<IProps> = () => {
   const dispatch = useAppDispatch()
   const { user } = useUser()
+  const navigate = useNavigate()
   const [uploadedSongs, setUploadedSongs] = useState<Song[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [hoveredSongId, setHoveredSongId] = useState<number | null>(null)
   const [loginVisible, setLoginVisible] = useState(false)
+  const [collectedPlaylists, setCollectedPlaylists] = useState<any[]>([])
   const [shareModalVisible, setShareModalVisible] = useState(false)
   const [currentSharingSong, setCurrentSharingSong] = useState<Song | null>(
     null
@@ -236,6 +240,15 @@ const Mine: FC<IProps> = () => {
   })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const loadCollectedPlaylists = useCallback(() => {
+    const list = JSON.parse(localStorage.getItem('collected_playlists') || '[]')
+    setCollectedPlaylists(list)
+  }, [])
+
+  useEffect(() => {
+    loadCollectedPlaylists()
+  }, [loadCollectedPlaylists])
+
   const fetchUploadedSongs = async () => {
     if (!user) {
       return
@@ -250,11 +263,9 @@ const Mine: FC<IProps> = () => {
       if (result.success) {
         setUploadedSongs(result.data || [])
       } else {
-        console.error('❌ 获取歌曲列表失败:', result.message)
         message.error(result.message || '获取歌曲列表失败')
       }
     } catch (error) {
-      console.error('💥 获取上传歌曲失败:', error)
       message.error('获取歌曲列表失败，请检查网络连接')
     }
   }
@@ -328,14 +339,12 @@ const Mine: FC<IProps> = () => {
           mostPopularSong
         }
 
-        console.log('生成的创作者统计:', stats)
         setCreatorStats(stats)
       } else {
         // 如果获取歌曲失败，使用模拟数据
         useMockStats()
       }
     } catch (error) {
-      console.error('获取创作者统计失败:', error)
       // 使用模拟数据作为备选
       useMockStats()
     }
@@ -431,15 +440,12 @@ const Mine: FC<IProps> = () => {
               fetchUploadedSongs()
               fetchCreatorStats() // 刷新统计数据
             } else {
-              console.error('❌ 上传失败:', result.message)
               message.error(result.message || '上传失败')
             }
           } catch (parseError) {
-            console.error('💥 解析响应失败:', parseError)
             message.error('上传响应解析失败')
           }
         } else {
-          console.error('❌ HTTP错误，状态码:', xhr.status)
           message.error(`上传失败，状态码: ${xhr.status}`)
         }
         setUploading(false)
@@ -452,7 +458,6 @@ const Mine: FC<IProps> = () => {
       })
 
       xhr.addEventListener('error', () => {
-        console.error('💥 上传请求发生网络错误')
         message.error('上传失败，请检查网络连接')
         setUploading(false)
         setUploadProgress(0)
@@ -461,7 +466,6 @@ const Mine: FC<IProps> = () => {
       xhr.open('POST', 'http://localhost:3001/api/upload')
       xhr.send(formData)
     } catch (error) {
-      console.error('💥 上传错误:', error)
       message.error('上传失败')
       setUploading(false)
       setUploadProgress(0)
@@ -488,7 +492,6 @@ const Mine: FC<IProps> = () => {
         message.error(result.message || '删除失败')
       }
     } catch (error) {
-      console.error('删除歌曲错误:', error)
       message.error('删除失败')
     }
   }
@@ -803,20 +806,13 @@ const Mine: FC<IProps> = () => {
                                 size="large"
                                 src={song.cover}
                                 icon={<CustomerServiceOutlined />}
-                                style={{ backgroundColor: '#1890ff' }}
+                                style={{ backgroundColor: '#fff' }}
                               />
                             }
                             title={song.title}
                             description={
                               <div>
-                                <div>艺术家: {song.artist}</div>
-                                <div>
-                                  时长: {song.duration} | 大小: {song.size}
-                                </div>
-                                <div>
-                                  上传时间:{' '}
-                                  {new Date(song.uploadTime).toLocaleString()}
-                                </div>
+                                <div>创作者: {song.artist}</div>
                               </div>
                             }
                           />
@@ -874,12 +870,6 @@ const Mine: FC<IProps> = () => {
               </Card>
               {[
                 {
-                  key: 'playlist',
-                  title: '我的歌单',
-                  icon: <PlayCircleOutlined style={{ marginRight: '8px' }} />,
-                  content: '暂无歌单'
-                },
-                {
                   key: 'favorite',
                   title: '我的收藏',
                   icon: <HeartOutlined style={{ marginRight: '8px' }} />,
@@ -900,20 +890,88 @@ const Mine: FC<IProps> = () => {
                       {card.title}
                     </span>
                   }
-                  extra={<Button type="link">查看全部</Button>}
+                  extra={
+                    <Button type="link" onClick={loadCollectedPlaylists}>
+                      刷新
+                    </Button>
+                  }
                 >
-                  <div className="empty-state">
-                    {card.key === 'playlist' && (
-                      <PlayCircleOutlined className="empty-icon" />
-                    )}
-                    {card.key === 'favorite' && (
-                      <HeartOutlined className="empty-icon" />
-                    )}
-                    {card.key === 'recent' && (
+                  {card.key === 'favorite' ? (
+                    collectedPlaylists.length > 0 ? (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px'
+                        }}
+                      >
+                        {collectedPlaylists.map((item) => (
+                          <div
+                            key={item.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '8px 0',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => {
+                              // 点击歌单可以跳转详情（可选）
+                              navigate(`/discover/playlist?id=${item.id}`)
+                            }}
+                          >
+                            <img
+                              src={getImageSize(
+                                item.coverImgUrl || item.picUrl,
+                                80
+                              )}
+                              alt={item.name}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 4,
+                                objectFit: 'cover',
+                                flexShrink: 0
+                              }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontSize: '12px',
+                                  color: '#333',
+                                  fontWeight: 500,
+                                  marginBottom: '4px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {item.name}
+                              </div>
+                              <div style={{ fontSize: '10px', color: '#999' }}>
+                                {item.trackCount || item.tracks?.length || 0}
+                                首歌 by{' '}
+                                {item.creator?.nickname ||
+                                  item.creator?.name ||
+                                  '未知创作者'}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="empty-state">
+                        <HeartOutlined className="empty-icon" />
+                        <div className="empty-text">暂无收藏</div>
+                      </div>
+                    )
+                  ) : (
+                    // 最近播放保持原样
+                    <div className="empty-state">
                       <FolderOutlined className="empty-icon" />
-                    )}
-                    <div className="empty-text">{card.content}</div>
-                  </div>
+                      <div className="empty-text">{card.content}</div>
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>
