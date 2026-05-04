@@ -3,7 +3,7 @@ export function handleSongsCategory(data: {
   sub: Array<{ category: number }>
 }) {
   const category = data.categories
-  const categoryData = Object.entries(category).map(([key, value]) => {
+  const categoryData = Object.entries(category).map(([value]) => {
     return {
       name: value,
       subs: [] as Array<{ category: number }>
