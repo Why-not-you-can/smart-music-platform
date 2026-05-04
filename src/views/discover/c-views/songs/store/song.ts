@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import {
+  getAllPlayListSongs,
   getPlaylistDetail,
   getSimiPlaylist,
   getSongCategory,
@@ -31,8 +32,13 @@ export const fetchSongsDetailAction = createAsyncThunk(
   'songsDetial',
   async (id: number, { dispatch }) => {
     const detailRes = await getPlaylistDetail(id)
-    const detailData = detailRes.playlist || {}
-    dispatch(changeSongsDetailAction(detailData))
+    const playlistDetail = detailRes.playlist || {}
+    dispatch(changeSongsDetailAction(playlistDetail))
+    const total = playlistDetail.trackCount || 0
+    const songsRes = await getAllPlayListSongs(id, total)
+    const allSongs = songsRes.songs || []
+    dispatch(changeAllPlaylistSongsAction(allSongs))
+    return { detail: playlistDetail, songs: allSongs }
   }
 )
 
@@ -84,6 +90,11 @@ const songSlice = createSlice({
     },
     changeSimiPlayListAction(state, { payload }) {
       state.simiPlaylist = payload
+    },
+    changeAllPlaylistSongsAction(state, { payload }) {
+      if (state.songsDetail) {
+        state.songsDetail.tracks = payload
+      }
     }
   }
 })
@@ -93,7 +104,8 @@ export const {
   changeSongListAction,
   changeCurrentCategoryAction,
   changeSongsDetailAction,
-  changeSimiPlayListAction
+  changeSimiPlayListAction,
+  changeAllPlaylistSongsAction
 } = songSlice.actions
 
 export default songSlice.reducer

@@ -18,6 +18,7 @@ const Player = lazy(() => import('@/views/player'))
 const Playlist = lazy(() => import('@/views/playlist'))
 const Personal = lazy(() => import('@/views/personal'))
 const SongsList = lazy(() => import('@/views/songslist'))
+const Search = lazy(() => import('@/views/search'))
 const routes: RouteObject[] = [
   {
     path: '/',
@@ -76,6 +77,10 @@ const routes: RouteObject[] = [
   {
     path: '/songslist',
     element: <SongsList />
+  },
+  {
+    path: '/search',
+    element: <Search />
   }
 ]
 

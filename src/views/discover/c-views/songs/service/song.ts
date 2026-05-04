@@ -16,6 +16,17 @@ export function getSongCategoryList(cat = '全部', offset = 0) {
   })
 }
 
+export function getAllPlayListSongs(id: number, limit, offset = 0) {
+  return hyRequest.get({
+    url: '/playlist/track/all',
+    params: {
+      id,
+      limit,
+      offset
+    }
+  })
+}
+
 export function getPlaylistDetail(id: number) {
   return hyRequest.get({
     url: '/playlist/detail',

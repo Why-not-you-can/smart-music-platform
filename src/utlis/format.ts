@@ -6,6 +6,15 @@ export function formatCount(count: number) {
   }
 }
 
+export function formatFavCount(count: number | undefined) {
+  if (!count) return '0'
+  if (count >= 100000) {
+    return (count / 10000).toFixed(1) + '万'
+  } else {
+    return count.toString()
+  }
+}
+
 export function getImageSize(
   imageUrl: string,
   width: number,

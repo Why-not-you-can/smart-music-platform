@@ -5,7 +5,6 @@ export const fetchTopListAction = createAsyncThunk(
   'toplist',
   async (_, { dispatch }) => {
     const topListRes = await getTopList()
-    console.log(topListRes)
     dispatch(changeTopListAction(topListRes.list || []))
   }
 )
