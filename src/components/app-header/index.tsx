@@ -68,7 +68,7 @@ const AppHeader: FC<IProps> = () => {
     }
     setDropdownVisible(false)
   }
-  const handleEnterPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleEnterPress = () => {
     const value = inputValue.trim()
     if (!value) return
     navigate(`/search?keywords=${encodeURIComponent(value)}`)
