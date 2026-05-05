@@ -13,9 +13,9 @@ import {
   MailOutlined,
   UserOutlined
 } from '@ant-design/icons'
-import { Button, Input, message } from 'antd'
+import { Button, Input, message, Typography } from 'antd'
 import { useUser } from '@/context/user-context'
-
+const { Text } = Typography
 export interface UserType {
   id: number
   username: string
@@ -44,6 +44,7 @@ interface IProps {
 const Login: FC<IProps> = ({ visible, onClose }) => {
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -59,6 +60,7 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
       ...prev,
       [field]: value
     }))
+    setErrorMsg('')
   }
 
   const handleRegister = async () => {
@@ -111,8 +113,9 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
           confirmPassword: ''
         })
         setIsLogin(true)
+        setErrorMsg('')
       } else {
-        message.error(result.message)
+        setErrorMsg(result.message)
       }
     } catch (error) {
       message.error('注册失败，请检查网络连接')
@@ -125,7 +128,7 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
     const { username, password } = formData
 
     if (!username || !password) {
-      message.error('请填写用户名和密码')
+      setErrorMsg('请填写用户名和密码')
       return
     }
 
@@ -149,12 +152,14 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
         localStorage.setItem('user', JSON.stringify(result.user))
         localStorage.setItem('token', result.token)
         setUser(result.user)
+        setErrorMsg('')
         handleClose()
       } else {
-        message.error(result.message)
+        setErrorMsg('账号或密码错误，请重新输入或找回密码')
+        setFormData((pre) => ({ ...pre, password: '' }))
       }
     } catch (error) {
-      message.error('登录失败，请检查网络连接')
+      setErrorMsg('登录失败，请检查网络连接')
     } finally {
       setLoading(false)
     }
@@ -176,6 +181,7 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
       password: '',
       confirmPassword: ''
     })
+    setErrorMsg('')
   }
 
   const handleLoginClick = () => {
@@ -186,6 +192,7 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
       password: '',
       confirmPassword: ''
     })
+    setErrorMsg('')
   }
 
   const handleClose = () => {
@@ -196,6 +203,7 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
       password: '',
       confirmPassword: ''
     })
+    setErrorMsg('')
     onClose()
   }
   return (
@@ -210,7 +218,13 @@ const Login: FC<IProps> = ({ visible, onClose }) => {
             aria-label="关闭"
           />
         </ModalHeader>
-
+        {errorMsg && (
+          <div style={{ padding: '0 24px 16px' }}>
+            <Text type="danger" strong>
+              {errorMsg}
+            </Text>
+          </div>
+        )}
         <ModalBody>
           {isLogin ? (
             <>
