@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react'
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import default_album from '@/assets/img/default_album.jpg'
 import type { FC, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -12,6 +12,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store'
 import { formatTime, getImageSize } from '@/utlis/format'
 import { getSongPlayUrl } from '@/utlis/handle-player'
+import ShareModel from '@/components/share-modal'
 import {
   changeLyricIndexAction,
   changeMusicAction,
@@ -30,6 +31,7 @@ const AppPlayerBar: FC<IProps> = () => {
   const [currentTime, setCurrentTime] = useState(0)
   const [showPanel, setShowPanel] = useState(false)
   const [isSliding, setIsSliding] = useState(false)
+  const [shareVisible, setShareVisible] = useState(false)
   const [volume, setVolume] = useState(1)
   const [showVolumeSlider, setShowVolumeSlider] = useState(false)
   const volumeRef = useRef<HTMLDivElement>(null)
@@ -47,7 +49,18 @@ const AppPlayerBar: FC<IProps> = () => {
 
   const dispatch = useAppDispatch()
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
+  const handleOpenShare = useCallback(() => {
+    setShareVisible(true)
+  }, [])
 
+  const handleCloseShare = useCallback(() => {
+    setShareVisible(false)
+  }, [])
+  const shareConfig = {
+    title: `${currentSong?.name || '未知歌曲'} - ${currentSong?.ar?.[0]?.name || '未知艺术家'}`,
+    content: `我发现了一首很棒的歌曲《${currentSong?.name || '未知歌曲'}》-${currentSong?.ar?.[0]?.name || '未知艺术家'}，快来听听！`,
+    url: window.location.href
+  }
   // 点击外部关闭音量滑块
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -307,7 +320,10 @@ const AppPlayerBar: FC<IProps> = () => {
           <div className="left">
             <button className="btn pip"></button>
             <button className="btn sprite_playbar favor"></button>
-            <button className="btn sprite_playbar share"></button>
+            <button
+              className="btn sprite_playbar share"
+              onClick={() => handleOpenShare()}
+            ></button>
           </div>
           <div className="right sprite_playbar">
             <div className="volume-wrapper" ref={volumeRef}>
@@ -345,6 +361,11 @@ const AppPlayerBar: FC<IProps> = () => {
         onEnded={handleTimeEnded}
       />
       <AppPlayerPanel visible={showPanel} />
+      <ShareModel
+        visible={shareVisible}
+        onClose={handleCloseShare}
+        config={shareConfig}
+      />
     </PlayerBarWrapper>
   )
 }

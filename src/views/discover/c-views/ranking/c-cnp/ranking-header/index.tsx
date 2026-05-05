@@ -31,8 +31,8 @@ const RankingHeader: FC<IProps> = () => {
           <div className="update-f">({'每日更新:TODO'})</div>
         </div>
         <SongOperationBar
-          favorTitle={`(${selectedRank.subscribedCount})`}
-          shareTitle={`(${selectedRank.shareCount})`}
+          favorTitle={`收藏(${selectedRank.subscribedCount})`}
+          shareTitle={`分享(${selectedRank.shareCount})`}
           downloadTitle="下载"
         />
       </div>

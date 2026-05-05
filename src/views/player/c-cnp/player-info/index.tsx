@@ -32,7 +32,7 @@ const PlayerInfo: FC<IProps> = () => {
           <a href="#/">生成外联播放器</a>
         </div>
       </div>
-      <div className="right" data-is-Spread={isSpread}>
+      <div className="right" data-is-spread={isSpread}>
         <div className="header">
           <i className="sprite_icon2"></i>
           <h3 className="title">{currentSong?.name}</h3>

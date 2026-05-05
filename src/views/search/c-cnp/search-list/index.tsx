@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo, useCallback, useEffect, useState } from 'react'
 import type { FC } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store'
@@ -7,12 +7,15 @@ import { fetchSongForSearchAction } from '../../store/search'
 import hyRequest from '@/service'
 import { formatFavCount, formatTime, getImageSize } from '@/utlis/format'
 import IPagination from '@/components/pagination'
+import ShareModel from '@/components/share-modal'
+import { ShareConfig } from '@/components/share-modal'
 import { fetchSongsDetailAction } from '@/views/discover/c-views/songs/store/song'
 import {
   changePlaySongIndexAction,
   changePlaySongListAction,
   fetchCurrentSongAction
 } from '@/views/player/store/player'
+import { getSongPlayUrl } from '@/utlis/handle-player'
 
 // TS 类型定义
 interface ISong {
@@ -54,6 +57,10 @@ const SearchList: FC = () => {
   const [loading, setLoading] = useState(false)
   const songsDetail = useAppSelector((state) => state.song.songsDetail)
   const [currentPage, setCurrentPage] = useState(1)
+  const [shareVisible, setShareVisible] = useState(false)
+  const [currentShareConfig, setCurrentShareConfig] = useState<
+    ShareConfig | undefined
+  >(undefined)
   const pageSize = activeTab === 'artist' ? 90 : 30
   const [allData, setAllData] = useState<IAllData>({
     song: [],
@@ -161,10 +168,46 @@ const SearchList: FC = () => {
   const handlePlayPlaylist = async (playlistId: number) => {
     await dispatch(fetchSongsDetailAction(playlistId))
     const songList = songsDetail?.tracks ?? []
+    if (songList.length === 0) return
     dispatch(changePlaySongListAction(songList))
     dispatch(changePlaySongIndexAction(0))
     dispatch(fetchCurrentSongAction(songList[0].id))
   }
+  const handleDownload = (songItem: any) => {
+    const musicUrl = getSongPlayUrl(songItem.id)
+    const singer = songItem.artists?.map((a) => a.name).join(',') || '未知歌手'
+    const fileName = `${songItem.name || '未知歌曲'} - ${singer}.mp3`
+
+    const a = document.createElement('a')
+    a.href = musicUrl
+    a.download = fileName
+    a.target = '_blank'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+  const handleOpenShare = useCallback(
+    (item: any, type: 'song' | 'playlist') => {
+      if (type === 'song') {
+        setCurrentShareConfig({
+          title: `${item.name || '未知歌曲'} - ${item.artists?.[0]?.name || '未知艺术家'}`,
+          content: `我发现了一首很棒的歌曲《${item.name || '未知歌曲'}》-${item.artists?.[0]?.name || '未知艺术家'}，快来听听！`,
+          url: window.location.href
+        })
+      } else {
+        setCurrentShareConfig({
+          title: item.name || '歌单分享',
+          content: `我发现了一个很棒的歌单：${item.name || ''}，快来听听！`,
+          url: window.location.href
+        })
+      }
+      setShareVisible(true)
+    },
+    []
+  )
+  const handleCloseShare = useCallback(() => {
+    setShareVisible(false)
+  }, [])
   const currentSongList = activeTab === 'song' ? getCurrentPageData() : []
   return (
     <SearchListWrapper>
@@ -284,12 +327,18 @@ const SearchList: FC = () => {
                             <button
                               className="share sprite_table"
                               title="分享"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleOpenShare(item, 'song')
+                              }}
                             ></button>
                             <button
                               className="download sprite_table"
                               title="下载"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDownload(item)
+                              }}
                             ></button>
                           </div>
                         </div>
@@ -314,8 +363,8 @@ const SearchList: FC = () => {
         )}
         {activeTab === 'artist' && !loading && (
           <div className="artist-list">
-            {getCurrentPageData().map((item: any) => (
-              <div key={item.id} className="artist-item">
+            {getCurrentPageData().map((item: any, index: number) => (
+              <div key={`${item.id}-${index}`} className="artist-item">
                 <div className="artist-img">
                   <img
                     src={getImageSize(item.picUrl || item.avatar, 130, 130)}
@@ -335,8 +384,8 @@ const SearchList: FC = () => {
         )}
         {activeTab === 'album' && !loading && (
           <div className="album-list">
-            {getCurrentPageData().map((item: any) => (
-              <div key={item.id} className="album-item">
+            {getCurrentPageData().map((item: any, index: number) => (
+              <div key={`${item.id}-${index}`} className="album-item">
                 <div className="album-img">
                   <img
                     src={getImageSize(item.picUrl, 130, 130)}
@@ -442,7 +491,10 @@ const SearchList: FC = () => {
                               <button
                                 className="share sprite_table"
                                 title="分享"
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleOpenShare(item, 'playlist')
+                                }}
                               ></button>
                             </div>
                           </div>
@@ -488,6 +540,11 @@ const SearchList: FC = () => {
           pageSize={pageSize}
         />
       </div>
+      <ShareModel
+        visible={shareVisible}
+        onClose={handleCloseShare}
+        config={currentShareConfig}
+      />
     </SearchListWrapper>
   )
 }
