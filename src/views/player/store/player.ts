@@ -8,7 +8,7 @@ import {
 import { ILyric, parseLyric } from '@/utlis/parse-lyric'
 import type { IRootState } from '@/store'
 
-interface IThunkState {
+export interface IThunkState {
   state: IRootState
 }
 export const fetchCurrentSongAction = createAsyncThunk<

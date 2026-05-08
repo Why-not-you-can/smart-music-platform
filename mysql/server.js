@@ -20,7 +20,8 @@ const dbConfig = {
   password: '123456',
   database: 'User',
   port: 3306,
-  charset: 'utf8mb4'
+  charset: 'utf8mb4',
+  connectTimeout: 2000
 }
 
 function formatDuration(seconds) {
@@ -165,6 +166,23 @@ const upload = multer({
   }
 })
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  if (!token) return res.status(401).json({ success: false, message: '未登录' })
+
+  jwt.verify(token, 'simple-secret-key', (err, user) => {
+    if (err)
+      return res.status(403).json({
+        success: false,
+        message:
+          err.name === 'TokenExpiredError' ? '登录过期，请重新登录' : '令牌无效'
+      })
+    req.user = user
+    next()
+  })
+}
+
 function formatFileSize(bytes) {
   if (bytes === 0) return '0 B'
   const k = 1024
@@ -299,140 +317,150 @@ app.post('/api/login', async (req, res) => {
 })
 
 // 上传音乐文件
-app.post('/api/upload', upload.single('music'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.json({
-        success: false,
-        message: '请选择音乐文件'
-      })
-    }
+app.post(
+  '/api/upload',
+  authenticateToken,
+  upload.single('music'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.json({
+          success: false,
+          message: '请选择音乐文件'
+        })
+      }
 
-    const { userId, username } = req.body
+      const userId = req.user.userId
 
-    if (!userId) {
-      return res.json({
-        success: false,
-        message: '用户ID不能为空'
-      })
-    }
-    const audioDuration = await getAudioDuration(req.file.path)
-    const formattedDuration = formatDuration(audioDuration)
+      if (!userId) {
+        return res.json({
+          success: false,
+          message: '用户ID不能为空'
+        })
+      }
+      const audioDuration = await getAudioDuration(req.file.path)
+      const formattedDuration = formatDuration(audioDuration)
 
-    // 正确解析文件名
-    const decodedFileName = Buffer.from(
-      req.file.originalname,
-      'latin1'
-    ).toString('utf8')
-    const fileNameWithoutExt = decodedFileName.replace(/\.mp3$/i, '')
-    let artist, title
-    const patterns = [
-      { regex: /^(.*)\s+-\s+(.*)$/, artistIndex: 1, titleIndex: 2 },
-      { regex: /^(.*)\s+-\s+(.*)$/, artistIndex: 2, titleIndex: 1 },
-      { regex: /^(.*)-(.*)$/, artistIndex: 1, titleIndex: 2 },
-      { regex: /^(.*)-(.*)$/, artistIndex: 2, titleIndex: 1 }
-    ]
+      // 正确解析文件名
+      const decodedFileName = Buffer.from(
+        req.file.originalname,
+        'latin1'
+      ).toString('utf8')
+      const fileNameWithoutExt = decodedFileName.replace(/\.mp3$/i, '')
+      let artist, title
+      const patterns = [
+        { regex: /^(.*)\s+-\s+(.*)$/, artistIndex: 1, titleIndex: 2 },
+        { regex: /^(.*)\s+-\s+(.*)$/, artistIndex: 2, titleIndex: 1 },
+        { regex: /^(.*)-(.*)$/, artistIndex: 1, titleIndex: 2 },
+        { regex: /^(.*)-(.*)$/, artistIndex: 2, titleIndex: 1 }
+      ]
 
-    let parsed = false
-    for (const pattern of patterns) {
-      const match = fileNameWithoutExt.match(pattern.regex)
-      if (match && match[pattern.artistIndex] && match[pattern.titleIndex]) {
-        artist = match[pattern.artistIndex].trim()
-        title = match[pattern.titleIndex].trim()
+      let parsed = false
+      for (const pattern of patterns) {
+        const match = fileNameWithoutExt.match(pattern.regex)
+        if (match && match[pattern.artistIndex] && match[pattern.titleIndex]) {
+          artist = match[pattern.artistIndex].trim()
+          title = match[pattern.titleIndex].trim()
 
-        if (artist.length >= 2 && title.length >= 2) {
-          parsed = true
-          break
+          if (artist.length >= 2 && title.length >= 2) {
+            parsed = true
+            break
+          }
         }
       }
-    }
 
-    if (!parsed) {
-      const lastDashIndex = fileNameWithoutExt.lastIndexOf('-')
-      if (lastDashIndex !== -1) {
-        const part1 = fileNameWithoutExt.substring(0, lastDashIndex).trim()
-        const part2 = fileNameWithoutExt.substring(lastDashIndex + 1).trim()
-        if (isLikelyArtistName(part2)) {
-          title = part1
-          artist = part2
-        } else if (isLikelyArtistName(part1)) {
-          title = part2
-          artist = part1
+      if (!parsed) {
+        const lastDashIndex = fileNameWithoutExt.lastIndexOf('-')
+        if (lastDashIndex !== -1) {
+          const part1 = fileNameWithoutExt.substring(0, lastDashIndex).trim()
+          const part2 = fileNameWithoutExt.substring(lastDashIndex + 1).trim()
+          if (isLikelyArtistName(part2)) {
+            title = part1
+            artist = part2
+          } else if (isLikelyArtistName(part1)) {
+            title = part2
+            artist = part1
+          } else {
+            title = fileNameWithoutExt
+            artist = '未知艺术家'
+          }
         } else {
           title = fileNameWithoutExt
           artist = '未知艺术家'
         }
-      } else {
-        title = fileNameWithoutExt
-        artist = '未知艺术家'
       }
-    }
 
-    // 设置默认封面
-    const defaultCovers = [
-      'https://p1.music.126.net/t3ogpTd1bIJpwokhkpBtwQ==/109951169829246225.jpg'
-    ]
-    const randomCover =
-      defaultCovers[Math.floor(Math.random() * defaultCovers.length)]
+      // 设置默认封面
+      const defaultCovers = [
+        'https://p1.music.126.net/t3ogpTd1bIJpwokhkpBtwQ==/109951169829246225.jpg'
+      ]
+      const randomCover =
+        defaultCovers[Math.floor(Math.random() * defaultCovers.length)]
 
-    let connection
-    try {
-      connection = await mysql.createConnection(dbConfig)
-      await connection.execute('SET NAMES utf8mb4')
-      const [result] = await connection.execute(
-        `INSERT INTO songs (title, artist, duration, size, url, cover, user_id, username, upload_time)
+      let connection
+      try {
+        connection = await mysql.createConnection(dbConfig)
+        await connection.execute('SET NAMES utf8mb4')
+        const [users] = await connection.execute(
+          'SELECT username FROM users WHERE id = ?',
+          [userId]
+        )
+        const username = users[0]?.username || '未知用户'
+        const [result] = await connection.execute(
+          `INSERT INTO songs (title, artist, duration, size, url, cover, user_id, username, upload_time)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-        [
-          title,
-          artist,
-          formattedDuration, // 使用真实的格式化时长
-          formatFileSize(req.file.size),
-          `/uploads/music/${req.file.filename}`,
-          randomCover,
-          userId,
-          username
-        ]
-      )
+          [
+            title,
+            artist,
+            formattedDuration, // 使用真实的格式化时长
+            formatFileSize(req.file.size),
+            `/uploads/music/${req.file.filename}`,
+            randomCover,
+            userId,
+            username
+          ]
+        )
 
-      const [songs] = await connection.execute(
-        'SELECT * FROM songs WHERE id = ?',
-        [result.insertId]
-      )
+        const [songs] = await connection.execute(
+          'SELECT * FROM songs WHERE id = ?',
+          [result.insertId]
+        )
 
-      const song = songs[0]
+        const song = songs[0]
 
-      res.json({
-        success: true,
-        message: '上传成功',
-        song: {
-          id: song.id,
-          title: song.title,
-          artist: song.artist,
-          duration: song.duration,
-          size: song.size,
-          uploadTime: song.upload_time,
-          url: song.url,
-          cover: song.cover
+        res.json({
+          success: true,
+          message: '上传成功',
+          song: {
+            id: song.id,
+            title: song.title,
+            artist: song.artist,
+            duration: song.duration,
+            size: song.size,
+            uploadTime: song.upload_time,
+            url: song.url,
+            cover: song.cover
+          }
+        })
+      } catch (dbError) {
+        console.error('💥 数据库错误:', dbError)
+        throw dbError
+      } finally {
+        if (connection) {
+          await connection.end()
         }
-      })
-    } catch (dbError) {
-      console.error('💥 数据库错误:', dbError)
-      throw dbError
-    } finally {
-      if (connection) {
-        await connection.end()
       }
+    } catch (error) {
+      res.json({
+        success: false,
+        message: '上传失败: ' + error.message
+      })
     }
-  } catch (error) {
-    res.json({
-      success: false,
-      message: '上传失败: ' + error.message
-    })
   }
-})
+)
 
 // 获取用户上传的歌曲列表
-app.get('/api/songs/user/:userId', async (req, res) => {
+app.get('/api/songs/user/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params
     let connection
@@ -489,7 +517,7 @@ app.get('/api/songs/user/:userId', async (req, res) => {
 })
 
 // 删除歌曲
-app.delete('/api/songs/:songId', async (req, res) => {
+app.delete('/api/songs/:songId', authenticateToken, async (req, res) => {
   try {
     const { songId } = req.params
     let connection

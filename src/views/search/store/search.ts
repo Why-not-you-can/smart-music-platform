@@ -3,10 +3,12 @@ import { getSearch } from '../service/search'
 import { getSongDetail, getSongLyric } from '@/views/player/service/player'
 import {
   changeCurrentSongAction,
-  changeLyricsAction
+  changeLyricsAction,
+  changePlaySongIndexAction,
+  changePlaySongListAction,
+  type IThunkState
 } from '@/views/player/store/player'
 import { parseLyric } from '@/utlis/parse-lyric'
-
 export const fetchSearchValueAction = createAsyncThunk(
   'search/fetchSearch',
   async (
@@ -34,19 +36,31 @@ export const fetchSearchValueAction = createAsyncThunk(
     )
   }
 )
-export const fetchSongForSearchAction = createAsyncThunk<void, number>(
-  'search/fetchSongForSearch',
-  async (id, { dispatch }) => {
-    const res = await getSongDetail(id)
-    if (res.songs.length) {
-      dispatch(changeCurrentSongAction(res.songs[0]))
-    }
-    const lyricRes = await getSongLyric(id)
-    const lyricString = lyricRes.lrc?.lyric || ''
-    const lyrics = parseLyric(lyricString)
-    dispatch(changeLyricsAction(lyrics))
+export const fetchSongForSearchAction = createAsyncThunk<
+  void,
+  number,
+  IThunkState
+>('search/fetchSongForSearch', async (id, { dispatch, getState }) => {
+  const playSongList = getState().player.playSongList
+  const findIndex = playSongList.findIndex((item) => item.id === id)
+  const res = await getSongDetail(id)
+  if (!res.songs.length) return
+  const song = res.songs[0]
+
+  if (findIndex === -1) {
+    const newPlaySongList = [...playSongList, song]
+    dispatch(changeCurrentSongAction(song))
+    dispatch(changePlaySongListAction(newPlaySongList))
+    dispatch(changePlaySongIndexAction(newPlaySongList.length - 1))
+  } else {
+    dispatch(changeCurrentSongAction(song))
+    dispatch(changePlaySongIndexAction(findIndex))
   }
-)
+  const lyricRes = await getSongLyric(id)
+  const lyricString = lyricRes.lrc?.lyric || ''
+  const lyrics = parseLyric(lyricString)
+  dispatch(changeLyricsAction(lyrics))
+})
 interface ISearchState {
   keyword: string
   songList: any[]
