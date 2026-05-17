@@ -253,10 +253,20 @@ const Mine: FC<IProps> = () => {
     if (!user) {
       return
     }
+    const token = localStorage.getItem('token')
+    if (!token) {
+      message.error('请先登录！')
+      return
+    }
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/songs/user/${user.id}`
+        `http://localhost:3001/api/songs/user/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
       const result = await response.json()
 
@@ -274,11 +284,21 @@ const Mine: FC<IProps> = () => {
     if (!user) {
       return
     }
+    const token = localStorage.getItem('token')
+    if (!token) {
+      message.error('请先登录！')
+      return
+    }
 
     try {
       // 使用现有的歌曲API获取数据
       const response = await fetch(
-        `http://localhost:3001/api/songs/user/${user.id}`
+        `http://localhost:3001/api/songs/user/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
       const result = await response.json()
 
@@ -409,14 +429,18 @@ const Mine: FC<IProps> = () => {
       return
     }
 
+    const token = localStorage.getItem('token')
+    if (!token) {
+      message.error('请先登录！')
+      return
+    }
+
     try {
       setUploading(true)
       setUploadProgress(0)
 
       const formData = new FormData()
       formData.append('music', file)
-      formData.append('userId', user.id.toString())
-      formData.append('username', user.username)
       const xhr = new XMLHttpRequest()
 
       // 监听上传进度
@@ -445,9 +469,16 @@ const Mine: FC<IProps> = () => {
           } catch (parseError) {
             message.error('上传响应解析失败')
           }
+        } else if (xhr.status === 401 || xhr.status === 403) {
+          const result = JSON.parse(xhr.responseText)
+          message.error(result.message || '登录已过期，请重新登录')
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setLoginVisible(true)
         } else {
           message.error(`上传失败，状态码: ${xhr.status}`)
         }
+
         setUploading(false)
         setUploadProgress(0)
 
@@ -464,6 +495,7 @@ const Mine: FC<IProps> = () => {
       })
 
       xhr.open('POST', 'http://localhost:3001/api/upload')
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
       xhr.send(formData)
     } catch (error) {
       message.error('上传失败')
@@ -475,10 +507,18 @@ const Mine: FC<IProps> = () => {
   // 删除歌曲
   const handleDeleteSong = async (songId: number) => {
     try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        message.error('请先登录！')
+        return
+      }
       const response = await fetch(
         `http://localhost:3001/api/songs/${songId}`,
         {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       )
 
