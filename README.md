@@ -9,7 +9,7 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479a1?logo=mysql)
 ![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-000000?logo=ollama)
 
-![alt text](image.png)
+![演示图片](image.png)
 
 ## ✨ 功能特性
 
