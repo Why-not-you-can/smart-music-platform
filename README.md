@@ -9,7 +9,7 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479a1?logo=mysql)
 ![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-000000?logo=ollama)
 
-<!-- 🖼️ 截图放这里：建议首页 Banner + 播放器 + AI 对话页 三张拼图，或一段演示 GIF -->
+![alt text](image.png)
 
 ## ✨ 功能特性
 
@@ -56,7 +56,8 @@ ollama serve
 npm start
 ```
 
-浏览器访问 http://localhost:3000
+浏览器访问 https://smart-music-platform.netlify.app/#/discover/recommend
+由于是免费部署的网站只能搞到前端，后端内容搞不到！！！
 
 ## 📁 目录结构
 
